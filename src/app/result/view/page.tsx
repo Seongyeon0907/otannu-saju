@@ -125,7 +125,7 @@ export default function ResultPage() {
   const { saju, result } = data;
 
   const handleShareTwitter = () => {
-    const text = `나의 게이 확률은 ${result.probability}%! 🌈\n"${result.comment}"\n\n오탠누 사주로 알아보기 👇`;
+    const text = `나의 게이 확률은 ${result.probability}%! 🌈\n\n오탠누 사주로 알아보기 👇`;
     const url = window.location.origin;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
@@ -140,7 +140,7 @@ export default function ResultPage() {
         objectType: "feed",
         content: {
           title: "오탠누 사주 | 게이 확률 테스트",
-          description: `나의 게이 확률은 ${result.probability}%! "${result.comment}"`,
+          description: `나의 게이 확률은 ${result.probability}%!`,
           imageUrl: `${window.location.origin}/og-image.png`,
           link: {
             mobileWebUrl: window.location.origin,
@@ -183,16 +183,6 @@ export default function ResultPage() {
           <div className="mb-8 animate-scale-reveal" style={{ animationDelay: "0.2s" }}>
             <p className="text-center text-sm text-ink-muted mb-4">나의 게이 확률은</p>
             <ProbabilityCircle value={result.probability} />
-          </div>
-
-          {/* Comment */}
-          <div
-            className="text-center mb-10 animate-fade-up"
-            style={{ animationDelay: "0.8s" }}
-          >
-            <p className="text-[18px] font-bold text-ink leading-relaxed">
-              &ldquo;{result.comment}&rdquo;
-            </p>
           </div>
 
           {/* Saju Details Card */}

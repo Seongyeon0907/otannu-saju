@@ -1,109 +1,78 @@
-import {
-  천간, 지지, 천간오행, 지지오행,
-  월간시작, 시간시작, 시진목록,
-} from "@/modules/saju/constants";
+import { Solar } from "lunar-typescript";
+import { 시진목록 } from "@/modules/saju/constants";
 import type { SajuResult, SajuPillar, FiveElements, BirthInput } from "@/modules/saju/types";
 
-/**
- * 년주 계산
- * 기준: 1924년 = 갑자년 (index 0)
- * 실제로는 입춘(2/4경) 기준이지만 간소화하여 양력 기준으로 계산
- */
-function calcYearPillar(year: number): SajuPillar {
-  const idx = ((year - 4) % 60 + 60) % 60;
-  return {
-    천간: 천간[idx % 10],
-    지지: 지지[idx % 12],
-    label: 천간[idx % 10] + 지지[idx % 12],
-  };
+// 한자 → 한글 매핑
+const 천간map: Record<string, string> = {
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무",
+  己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+};
+
+const 지지map: Record<string, string> = {
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사",
+  午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+};
+
+function toPillar(gan: string, zhi: string): SajuPillar {
+  const 천간 = 천간map[gan];
+  const 지지 = 지지map[zhi];
+  return { 천간, 지지, label: 천간 + 지지 };
 }
 
 /**
- * 월주 계산
- * 인월(1월/양력2월)부터 시작
- * 월지: 인(1월), 묘(2월), 진(3월), ... 축(12월)
- */
-function calcMonthPillar(year: number, month: number): SajuPillar {
-  const yearStemIdx = ((year - 4) % 10 + 10) % 10;
-  // 월지 인덱스: 1월→인(2), 2월→묘(3), ... 11월→자(0), 12월→축(1)
-  const monthBranchIdx = (month + 1) % 12;
-  // 월간: 년간에 따른 시작값 + (월-1)
-  const startStem = 월간시작[yearStemIdx];
-  const monthStemIdx = (startStem + (month - 1)) % 10;
-
-  return {
-    천간: 천간[monthStemIdx],
-    지지: 지지[monthBranchIdx],
-    label: 천간[monthStemIdx] + 지지[monthBranchIdx],
-  };
-}
-
-/**
- * 일주 계산
- * 기준일: 1900년 1월 1일 = 갑자일 (간소화된 계산)
- * 실제 만세력과 1-2일 차이가 있을 수 있음
- */
-function calcDayPillar(year: number, month: number, day: number): SajuPillar {
-  // 기준: 1900-01-31 = 갑자일 (index 0)
-  const baseDate = new Date(1900, 0, 31);
-  const targetDate = new Date(year, month - 1, day);
-  const diffDays = Math.floor((targetDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
-  const idx = ((diffDays % 60) + 60) % 60;
-
-  return {
-    천간: 천간[idx % 10],
-    지지: 지지[idx % 12],
-    label: 천간[idx % 10] + 지지[idx % 12],
-  };
-}
-
-/**
- * 시주 계산
- */
-function calcHourPillar(dayStem: string, hourKey: string): SajuPillar {
-  const hourInfo = 시진목록.find((h) => h.key === hourKey);
-  if (!hourInfo) throw new Error(`Invalid hour key: ${hourKey}`);
-
-  const dayStemIdx = 천간.indexOf(dayStem as typeof 천간[number]);
-  const startStem = 시간시작[dayStemIdx];
-  const hourStemIdx = (startStem + hourInfo.지지idx) % 10;
-
-  return {
-    천간: 천간[hourStemIdx],
-    지지: 지지[hourInfo.지지idx],
-    label: 천간[hourStemIdx] + 지지[hourInfo.지지idx],
-  };
-}
-
-/**
- * 오행 분포 계산
- */
-function calcFiveElements(pillars: SajuPillar[]): FiveElements {
-  const elements: FiveElements = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
-
-  for (const pillar of pillars) {
-    const stemElement = 천간오행[pillar.천간] as keyof FiveElements;
-    const branchElement = 지지오행[pillar.지지] as keyof FiveElements;
-    elements[stemElement]++;
-    elements[branchElement]++;
-  }
-
-  return elements;
-}
-
-/**
- * 사주팔자 전체 계산
+ * 사주팔자 전체 계산 (lunar-typescript 만세력 기반)
+ * 절기 기준 년주/월주, 정확한 일주 계산
  */
 export function calculateSaju(input: BirthInput): SajuResult {
-  const 년주 = calcYearPillar(input.year);
-  const 월주 = calcMonthPillar(input.year, input.month);
-  const 일주 = calcDayPillar(input.year, input.month, input.day);
-  const 시주 = input.hour ? calcHourPillar(일주.천간, input.hour) : null;
+  // 시간 결정: 시진 key → 시간대 중간값
+  let hour = 0;
+  let hasHour = false;
+  if (input.hour) {
+    const hourInfo = 시진목록.find((h) => h.key === input.hour);
+    if (hourInfo) {
+      // 지지idx 0=자시(23시), 1=축시(1시), ... 매핑
+      const hourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
+      hour = hourMap[hourInfo.지지idx];
+      hasHour = true;
+    }
+  }
 
-  const pillars = [년주, 월주, 일주];
-  if (시주) pillars.push(시주);
+  const solar = hasHour
+    ? Solar.fromYmdHms(input.year, input.month, input.day, hour, 0, 0)
+    : Solar.fromYmd(input.year, input.month, input.day);
 
+  const lunar = solar.getLunar();
+  const bazi = lunar.getEightChar();
+
+  const 년주 = toPillar(bazi.getYearGan(), bazi.getYearZhi());
+  const 월주 = toPillar(bazi.getMonthGan(), bazi.getMonthZhi());
+  const 일주 = toPillar(bazi.getDayGan(), bazi.getDayZhi());
+  const 시주 = hasHour
+    ? toPillar(bazi.getTimeGan(), bazi.getTimeZhi())
+    : null;
+
+  // 오행 분포 계산
+  const pillars = [년주, 월주, 일주, ...(시주 ? [시주] : [])];
   const 오행 = calcFiveElements(pillars);
 
   return { 년주, 월주, 일주, 시주, 오행 };
+}
+
+const 천간오행: Record<string, keyof FiveElements> = {
+  갑: "목", 을: "목", 병: "화", 정: "화", 무: "토",
+  기: "토", 경: "금", 신: "금", 임: "수", 계: "수",
+};
+
+const 지지오행: Record<string, keyof FiveElements> = {
+  자: "수", 축: "토", 인: "목", 묘: "목", 진: "토", 사: "화",
+  오: "화", 미: "토", 신: "금", 유: "금", 술: "토", 해: "수",
+};
+
+function calcFiveElements(pillars: SajuPillar[]): FiveElements {
+  const elements: FiveElements = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+  for (const pillar of pillars) {
+    elements[천간오행[pillar.천간]]++;
+    elements[지지오행[pillar.지지]]++;
+  }
+  return elements;
 }

@@ -1,49 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { anthropic } from "@/lib/anthropic";
 import { calculateSaju } from "@/lib/saju";
-import { buildPrompt } from "@/lib/prompt";
-import type { BirthInput, AnalysisResult } from "@/modules/saju/types";
+import { buildLoveCountPrompt } from "@/lib/prompt-love-count";
+import type { LoveCountInput, LoveCountResult } from "@/modules/saju/types";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const body: BirthInput = await req.json();
+    const body: LoveCountInput = await req.json();
 
-    // Validate input
-    if (!body.year || !body.month || !body.day) {
+    if (!body.year || !body.month || !body.day || !body.mbti) {
       return NextResponse.json(
-        { error: "생년월일을 모두 입력해주세요." },
-        { status: 400 }
+        { error: "생년월일과 MBTI를 모두 입력해주세요." },
+        { status: 400 },
       );
     }
 
-    // Calculate saju
-    const saju = calculateSaju(body);
+    if (body.pastLoveCount == null || body.pastLoveCount < 0) {
+      return NextResponse.json(
+        { error: "과거 연애 횟수를 입력해주세요." },
+        { status: 400 },
+      );
+    }
 
-    // Build prompt and call Claude
-    const prompt = buildPrompt(saju);
+    const saju = calculateSaju(body);
+    const prompt = buildLoveCountPrompt(saju, body.mbti, body.pastLoveCount);
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      max_tokens: 4096,
+      messages: [{ role: "user", content: prompt }],
     });
 
-    // Parse response
     const responseText =
       message.content[0].type === "text" ? message.content[0].text : "";
 
-    let result: AnalysisResult;
+    let result: LoveCountResult;
     try {
       result = JSON.parse(responseText);
     } catch {
-      // Extract JSON block and fix common LLM issues (missing commas between fields)
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const fixed = jsonMatch[0].replace(/"\s*\n\s*"/g, '",\n"');
@@ -64,10 +60,10 @@ export async function POST(req: NextRequest) {
       result,
     });
   } catch (error) {
-    console.error("Analysis error:", error);
+    console.error("Love count analysis error:", error);
     return NextResponse.json(
       { error: "분석 중 오류가 발생했습니다. 다시 시도해주세요." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

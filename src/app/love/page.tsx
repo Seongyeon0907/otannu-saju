@@ -2,12 +2,12 @@
 
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function LoveLanding() {
   const router = useRouter();
 
   return (
     <main className="h-screen overflow-hidden">
-      {/* Hero — payment-push style (mysterious single figure) */}
+      {/* Hero */}
       <div className="relative w-full overflow-hidden">
         <div className="relative w-full aspect-[3/4]">
           <img
@@ -16,16 +16,15 @@ export default function Home() {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
-          {/* Purple tint overlay for branding */}
           <div className="absolute inset-0 bg-gradient-to-b from-purple-accent/20 via-transparent to-transparent mix-blend-overlay" />
         </div>
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-10 text-center space-y-3">
           <h1 className="text-[34px] font-bold text-white leading-snug drop-shadow-lg">
-            나, 혹시<br />
-            <span className="text-rainbow">게이</span>일까?
+            남은 연애,<br />
+            <span className="text-rainbow">몇 번</span>일까?
           </h1>
           <p className="text-[16px] font-medium text-white/55 leading-relaxed">
-            사주로 게이인지<br />
+            사주로 남은 연애 횟수를<br />
             알 수 있대!
           </p>
         </div>
@@ -33,19 +32,15 @@ export default function Home() {
 
       <div className="px-5 pb-52">
         <div className="space-y-14 pt-10 animate-fade-up">
-
-          {/* Social proof */}
           <div className="text-center space-y-3">
             <h2 className="text-[22px] font-bold text-ink">
-              사주로 보는 <span className="text-purple-accent">게이 확률</span> 테스트
+              사주로 보는 <span className="text-purple-accent">남은 연애 횟수</span>
             </h2>
             <p className="text-[16px] text-ink-muted leading-relaxed">
-              생년월일시만 입력하면<br />
-              사주팔자 분석으로 게이 확률을 알려드려요
+              생년월일시 + MBTI만 입력하면<br />
+              사주 분석으로 남은 연애 횟수를 알려드려요
             </p>
           </div>
-
-
         </div>
       </div>
 
@@ -54,13 +49,13 @@ export default function Home() {
         <div className="absolute -top-10 left-0 right-0 h-10 bg-gradient-to-t from-[#050505] to-transparent" />
         <div className="bg-[#050505] px-5 pb-2 pt-3" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>
           <button
-            onClick={() => router.push("/input")}
+            onClick={() => router.push("/love/input")}
             className="w-full h-14 text-base font-bold rounded-2xl text-white shadow-xl transition-all active:scale-[0.97] glow-purple"
             style={{
               background: "linear-gradient(135deg, #8B5CF6, #EC4899)",
             }}
           >
-            내 게이 확률 알아보기
+            내 남은 연애 횟수 알아보기
           </button>
         </div>
       </div>
