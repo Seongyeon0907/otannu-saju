@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { anthropic } from "@/lib/anthropic";
 import { calculateSaju } from "@/lib/saju";
-import { buildLoveCountPrompt } from "@/lib/prompt-love-count";
-import type { LoveCountInput, LoveCountResult } from "@/modules/saju/types";
-
-export const maxDuration = 60;
+import { buildLoveCountResult } from "@/lib/love-count-builder";
+import type { LoveCountInput } from "@/modules/saju/types";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,29 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const saju = calculateSaju(body);
-    const prompt = buildLoveCountPrompt(saju, body.mbti, body.pastLoveCount);
-
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const responseText =
-      message.content[0].type === "text" ? message.content[0].text : "";
-
-    let result: LoveCountResult;
-    try {
-      result = JSON.parse(responseText);
-    } catch {
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const fixed = jsonMatch[0].replace(/"\s*\n\s*"/g, '",\n"');
-        result = JSON.parse(fixed);
-      } else {
-        throw new Error("Failed to parse AI response");
-      }
-    }
+    const result = buildLoveCountResult(saju, body.mbti, body.pastLoveCount);
 
     return NextResponse.json({
       saju: {
