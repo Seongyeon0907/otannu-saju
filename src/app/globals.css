@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: 'GraceSerif';
+  src: url('/fonts/GraceSerif-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -278,6 +286,16 @@
 
 .animate-story-enter-prev {
   animation: story-enter-prev 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Review auto-scroll */
+@keyframes review-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.animate-review-scroll {
+  animation: review-scroll 20s linear infinite;
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }

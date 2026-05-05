@@ -7,7 +7,6 @@ import {
   idealTypeData,
   lovePredictionPool,
   getPeerComparison,
-  getMbtiComparison,
   threeYearForecastData,
 } from "./love-count-data";
 
@@ -115,11 +114,10 @@ function buildEachLove(saju: SajuResult, totalCount: number, pastCount: number):
 }
 
 /**
- * 사주 + MBTI + 과거 연애 횟수로 결과를 조립
+ * 사주 + 과거 연애 횟수로 결과를 조립
  */
 export function buildLoveCountResult(
   saju: SajuResult,
-  mbti: string,
   pastLoveCount: number,
 ): LoveCountResult {
   const totalLoveCount = calcTotalLoveCount(saju);
@@ -136,7 +134,6 @@ export function buildLoveCountResult(
     remainingLoveCount,
     eachLove: buildEachLove(saju, totalLoveCount, pastLoveCount),
     peerComparison: getPeerComparison(totalLoveCount),
-    mbtiComparison: getMbtiComparison(mbti, totalLoveCount),
     datingStyle: datingStyleData[strongest],
     mainEnergy: mainEnergyData[strongest],
     lackingEnergy: lackingEnergyData[weakest],

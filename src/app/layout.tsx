@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "오탠누 사주 | 나, 혹시 게이일까?",
-  description: "사주팔자로 알아보는 나의 게이 확률. 생년월일시만 입력하면 끝!",
+  title: "이쪽 사주 - 사주광인 이쪽이 만든 사주",
+  description: "사주광인 이쪽 개발자가 만든 사주. 생년월일시만 입력하면 끝!",
   openGraph: {
-    title: "오탠누 사주 | 나, 혹시 게이일까?",
-    description: "사주팔자로 알아보는 나의 게이 확률",
+    title: "이쪽 사주 - 사주광인 이쪽이 만든 사주",
+    description: "사주광인 이쪽 개발자가 만든 사주",
     type: "website",
   },
 };
